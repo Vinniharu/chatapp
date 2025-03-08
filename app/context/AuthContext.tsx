@@ -6,7 +6,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut as authSignOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  UserCredential
 } from 'firebase/auth';
 import { auth, database } from '../firebase/config';
 import { ref, set, onDisconnect, onValue, off } from 'firebase/database';
@@ -82,21 +83,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const signUp = async (email: string, password: string) => {
-    return createUserWithEmailAndPassword(auth, email, password);
+  const signUp = async (email: string, password: string): Promise<void> => {
+    await createUserWithEmailAndPassword(auth, email, password);
   };
 
-  const signIn = async (email: string, password: string) => {
-    return signInWithEmailAndPassword(auth, email, password);
+  const signIn = async (email: string, password: string): Promise<void> => {
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const signOut = async () => {
+  const signOut = async (): Promise<void> => {
     if (user) {
       // Remove user from online status
       const userStatusRef = ref(database, `status/${user.uid}`);
       await set(userStatusRef, null);
     }
-    return authSignOut(auth);
+    await authSignOut(auth);
   };
 
   const value: AuthContextType = {
