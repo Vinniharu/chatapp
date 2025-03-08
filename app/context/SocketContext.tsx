@@ -30,14 +30,16 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     // Only connect to socket if user is authenticated
     if (!user) return;
 
-    // Initialize the socket connection (only once)
+    let socketIo: Socket | null = null;
+
+    // Initialize the socket connection
     const initSocket = async () => {
       try {
         // Call the API endpoint to initialize the Socket.io server
         await fetch('/api/socket');
         
         // Connect to the Socket.io server
-        const socketIo = io();
+        socketIo = io();
         
         socketIo.on('connect', () => {
           console.log('Socket.io connected');
@@ -50,21 +52,20 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         });
 
         setSocket(socketIo);
-        
-        return () => {
-          console.log('Disconnecting socket');
-          socketIo.disconnect();
-        };
       } catch (error) {
         console.error('Error initializing Socket.io:', error);
       }
     };
 
-    const cleanup = initSocket();
-    
+    // Initialize the socket
+    initSocket();
+
+    // Cleanup function
     return () => {
-      // Call the cleanup function returned by initSocket
-      if (cleanup) cleanup();
+      if (socketIo) {
+        console.log('Disconnecting socket');
+        socketIo.disconnect();
+      }
     };
   }, [user]);
 
